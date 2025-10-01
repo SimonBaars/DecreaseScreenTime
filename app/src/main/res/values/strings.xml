@@ -2,5 +2,8 @@
 <resources>
     <string name="app_name">Decrease Screen Time</string>
     <string name="unlock_count">Screen Unlocks: %d</string>
-    <string name="reset_count">Reset Count</string>
+    <string name="reset_count">Reset All</string>
+    <string name="screen_time_default">Screen Time: 0m</string>
+    <string name="screen_time_minutes">Screen Time: %dm</string>
+    <string name="screen_time_hours">Screen Time: %dh %dm</string>
 </resources>
