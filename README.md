@@ -4,24 +4,41 @@ App that rewards low screentime and punishes high screen time
 ## Features
 
 - **Screen Unlock Counter**: Tracks every time you unlock your device (Android 12+)
-- **Persistent Storage**: Unlock count is saved and persists across app restarts
-- **Simple UI**: Clean interface showing your unlock count
-- **Reset Counter**: Ability to reset the unlock count at any time
+- **Screen Time Tracking**: Monitors total screen-on time throughout the day
+- **Progressive Annoyance System**: Increasingly intrusive warnings as screen time increases
+  - **>15 minutes**: Persistent overlay message showing current screen time
+  - **>30 minutes**: Larger warning message with increased visibility
+  - **>1 hour**: Screen dimming that progressively gets darker + popup warnings every 2 minutes
+- **Daily Reset**: Screen time automatically resets at midnight
+- **Persistent Storage**: All data is saved and persists across app restarts
+- **Simple UI**: Clean interface showing both unlock count and screen time
+- **Reset All**: Ability to reset both unlock count and screen time at any time
 
 ## How It Works
 
-The app uses Android's `ACTION_USER_PRESENT` broadcast intent to detect when the device screen is unlocked. This broadcast is sent after the user has unlocked the device and is available on Android 12 and higher.
+The app uses multiple Android system features to track and discourage excessive phone usage:
+
+1. **Unlock Tracking**: Uses `ACTION_USER_PRESENT` broadcast intent to count screen unlocks
+2. **Screen Time Tracking**: Monitors `ACTION_SCREEN_ON` and `ACTION_SCREEN_OFF` broadcasts to calculate total screen-on time
+3. **Foreground Service**: Runs persistently in the background to track screen time accurately
+4. **Screen Overlay**: Displays warning messages using `SYSTEM_ALERT_WINDOW` permission when usage exceeds thresholds
+5. **Progressive Interventions**: Implements increasingly annoying features to encourage users to reduce screen time
 
 ### Key Components
 
-1. **ScreenUnlockReceiver**: A BroadcastReceiver registered in the AndroidManifest that listens for `ACTION_USER_PRESENT` events and increments the unlock count
-2. **MainActivity**: Displays the current unlock count and provides a reset button
-3. **SharedPreferences**: Used to persist the unlock count across app sessions
+1. **ScreenUnlockReceiver**: Listens for screen unlock events and ensures tracking services are running
+2. **ScreenTimeService**: Foreground service that tracks screen-on time and broadcasts updates
+3. **OverlayService**: Manages the on-screen overlay that displays warnings based on usage thresholds
+4. **MainActivity**: Displays current statistics and provides controls to the user
+5. **SharedPreferences**: Persists all tracking data across app sessions and device reboots
 
 ## Requirements
 
 - Android 12 (API level 31) or higher
-- No special permissions required - screen unlock events are publicly available
+- **Permissions Required**:
+  - `SYSTEM_ALERT_WINDOW`: To display overlay warnings on top of other apps
+  - `FOREGROUND_SERVICE`: To run persistent background service for screen time tracking
+  - `POST_NOTIFICATIONS`: To show foreground service notification (Android 13+)
 
 ## Building
 
