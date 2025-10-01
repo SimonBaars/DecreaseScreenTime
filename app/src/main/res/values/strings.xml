@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Decrease Screen Time</string>
+    <string name="unlock_count">Screen Unlocks: %d</string>
+    <string name="reset_count">Reset Count</string>
+</resources>
