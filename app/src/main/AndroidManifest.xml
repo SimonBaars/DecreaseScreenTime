@@ -22,7 +22,7 @@
         <receiver
             android:name=".ScreenUnlockReceiver"
             android:enabled="true"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.USER_PRESENT" />
             </intent-filter>
