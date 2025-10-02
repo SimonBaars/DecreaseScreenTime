@@ -21,6 +21,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var unlockCountText: TextView
     private lateinit var screenTimeText: TextView
     private lateinit var resetButton: Button
+    private lateinit var settingsButton: Button
     private lateinit var exportButton: Button
     
     private val screenUnlockReceiver = object : BroadcastReceiver() {
@@ -55,10 +56,16 @@ class MainActivity : AppCompatActivity() {
         unlockCountText = findViewById(R.id.unlockCountText)
         screenTimeText = findViewById(R.id.screenTimeText)
         resetButton = findViewById(R.id.resetButton)
+        settingsButton = findViewById(R.id.settingsButton)
         exportButton = findViewById(R.id.exportButton)
 
         resetButton.setOnClickListener {
             resetData()
+        }
+        
+        settingsButton.setOnClickListener {
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
         }
         
         exportButton.setOnClickListener {

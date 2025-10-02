@@ -24,6 +24,7 @@ class OverlayService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var currentScreenTime: Long = 0
     private var popupShown = false
+    private lateinit var settingsManager: SettingsManager
     
     private val screenTimeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -47,20 +48,21 @@ class OverlayService : Service() {
     private val updateRunnable = object : Runnable {
         override fun run() {
             updateOverlay()
-            // Show popup every 2 minutes if over 1 hour
+            // Show popup based on configurable threshold and frequency
             val minutes = currentScreenTime / (60 * 1000)
-            if (minutes >= 60 && !popupShown) {
+            if (minutes >= settingsManager.excessiveScreenTimeThresholdMinutes && !popupShown) {
                 showAnnoyingPopup()
                 popupShown = true
-                handler.postDelayed({ popupShown = false }, 2 * 60 * 1000) // Reset after 2 min
+                handler.postDelayed({ popupShown = false }, settingsManager.popupFrequencyMinutes * 60 * 1000L)
             }
-            handler.postDelayed(this, 30 * 1000) // Update every 30 seconds
+            handler.postDelayed(this, settingsManager.updateIntervalSeconds * 1000L)
         }
     }
     
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        settingsManager = SettingsManager(this)
         
         // Load initial screen time from SharedPreferences
         loadInitialScreenTime()
@@ -116,7 +118,7 @@ class OverlayService : Service() {
     private fun updateOverlay() {
         val minutes = currentScreenTime / (60 * 1000)
         
-        if (minutes >= 15) {
+        if (minutes >= settingsManager.overlayThresholdMinutes) {
             if (overlayView == null) {
                 createOverlay()
             }
@@ -162,8 +164,8 @@ class OverlayService : Service() {
             val mins = minutes % 60
             
             val message = when {
-                minutes >= 60 -> getString(R.string.overlay_excessive_screen_time, hours, mins)
-                minutes >= 30 -> getString(R.string.overlay_high_screen_time, mins)
+                minutes >= settingsManager.excessiveScreenTimeThresholdMinutes -> getString(R.string.overlay_excessive_screen_time, hours, mins)
+                minutes >= settingsManager.highScreenTimeThresholdMinutes -> getString(R.string.overlay_high_screen_time, mins)
                 else -> getString(R.string.overlay_screen_time, mins)
             }
             
@@ -171,21 +173,22 @@ class OverlayService : Service() {
             
             // Adjust text size based on thresholds
             val textSize = when {
-                minutes >= 30 -> 24f
-                else -> 18f
+                minutes >= settingsManager.highScreenTimeThresholdMinutes -> settingsManager.largeTextSize
+                else -> settingsManager.smallTextSize
             }
             messageText.textSize = textSize
         }
     }
     
     private fun applyScreenDimming(minutes: Long) {
-        if (minutes >= 60) {
+        if (minutes >= settingsManager.excessiveScreenTimeThresholdMinutes) {
             overlayView?.let { view ->
                 val params = view.layoutParams as WindowManager.LayoutParams
                 
                 // Progressive dimming: more time = darker
-                val hoursOver = (minutes - 60) / 60f
-                val dimAmount = (0.3f + hoursOver * 0.1f).coerceAtMost(0.5f)
+                val minutesOver = minutes - settingsManager.excessiveScreenTimeThresholdMinutes
+                val intervalsOver = minutesOver / settingsManager.dimIncrementIntervalMinutes.toFloat()
+                val dimAmount = (settingsManager.initialDimAmount + intervalsOver * settingsManager.dimIncrement).coerceAtMost(settingsManager.maxDimAmount)
                 
                 params.flags = params.flags or WindowManager.LayoutParams.FLAG_DIM_BEHIND
                 params.dimAmount = dimAmount
