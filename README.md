@@ -95,15 +95,21 @@ The project includes GitHub Actions workflows for automated builds:
 
 Every CI build automatically generates a unique version number:
 - **Version Code**: Format `YYYYMMDDRRR` (e.g., `20240115001` for January 15, 2024, run #1)
+  - `YYYYMMDD`: Current date in UTC
+  - `RRR`: Zero-padded 3-digit run number (001-999)
 - **Version Name**: Format `YYYY.MM.DD.RUN` (e.g., `2025.01.15.1`)
 
-This ensures that every CI-built APK has a higher version number than previous builds, allowing proper installation over existing versions. Local builds default to version `1` / `1.0`.
+The zero-padded run number ensures monotonically increasing version codes across different days (e.g., `20250115999` < `20250116001`). This allows proper installation of newer APKs over older ones, as long as they're signed with the same key. Local builds default to version `1` / `1.0`.
 
 ## Installation
 
 ### From APK
 
 Download the latest APK from the [Releases](https://github.com/SimonBaars/DecreaseScreenTime/releases) page.
+
+**Important**: Debug APKs (from workflow artifacts) and Release APKs (from releases) are signed with different keys. You cannot install one type over the other without first uninstalling the existing app. To preserve your data when upgrading:
+- Always use the same type of APK (debug or release)
+- OR export your data before uninstalling, then import after reinstalling
 
 ### Local Installation
 
