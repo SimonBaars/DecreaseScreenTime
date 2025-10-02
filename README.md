@@ -38,6 +38,7 @@ The app uses multiple Android system features to track and discourage excessive 
 - **Permissions Required**:
   - `SYSTEM_ALERT_WINDOW`: To display overlay warnings on top of other apps
   - `FOREGROUND_SERVICE`: To run persistent background service for screen time tracking
+  - `FOREGROUND_SERVICE_DATA_SYNC`: Required for data sync foreground service (Android 14+)
   - `POST_NOTIFICATIONS`: To show foreground service notification (Android 13+)
 
 ## Building
