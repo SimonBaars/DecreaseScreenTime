@@ -36,4 +36,10 @@
     <string name="seconds_hint">Seconds</string>
     <string name="text_size_hint">Size in sp</string>
     <string name="dim_hint">0.0 to 1.0</string>
+    
+    <!-- Export functionality -->
+    <string name="export_csv">Export to CSV</string>
+    <string name="export_success">Exported to: %s</string>
+    <string name="export_failed">Failed to export data</string>
+    <string name="permission_needed">Storage permission needed to export CSV</string>
 </resources>

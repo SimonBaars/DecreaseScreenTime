@@ -12,6 +12,7 @@ App that rewards low screentime and punishes high screen time
 - **Fully Configurable Settings**: All thresholds, intervals, and display settings can be customized
 - **Daily Reset**: Screen time automatically resets at midnight
 - **Persistent Storage**: All data is saved and persists across app restarts
+- **CSV Export**: Export your screen time history to CSV for analysis
 - **Simple UI**: Clean interface showing both unlock count and screen time
 - **Reset All**: Ability to reset both unlock count and screen time at any time
 
@@ -33,7 +34,9 @@ The app uses multiple Android system features to track and discourage excessive 
 4. **MainActivity**: Displays current statistics and provides controls to the user
 5. **SettingsActivity**: Allows users to configure all thresholds and display preferences
 6. **SettingsManager**: Manages user preferences and provides default values
-7. **SharedPreferences**: Persists all tracking data and settings across app sessions and device reboots
+7. **CsvExporter**: Exports screen time history data to CSV format
+8. **DailyStats**: Manages daily screen time statistics and history
+9. **SharedPreferences**: Persists all tracking data and settings across app sessions and device reboots
 
 ## Configuration
 
@@ -87,6 +90,14 @@ The project includes GitHub Actions workflows for automated builds:
 
 - **Build APK** (`build.yml`): Runs on every push to main/develop branches and pull requests, creates debug APK artifacts
 - **Build and Release APK** (`build-release.yml`): Runs when a version tag is pushed, creates a signed release APK and attaches it to GitHub releases
+
+#### Automatic Versioning
+
+Every CI build automatically generates a unique version number:
+- **Version Code**: Format `YYYYMMDDRRR` (e.g., `20240115001` for January 15, 2024, run #1)
+- **Version Name**: Format `YYYY.MM.DD.RUN` (e.g., `2025.01.15.1`)
+
+This ensures that every CI-built APK has a higher version number than previous builds, allowing proper installation over existing versions. Local builds default to version `1` / `1.0`.
 
 ## Installation
 

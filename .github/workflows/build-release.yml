@@ -27,6 +27,16 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
+    - name: Set version variables
+      run: |
+        # Use date-based version code: YYYYMMDD + run number (e.g., 20240115001)
+        DATE_CODE=$(date +%Y%m%d)
+        VERSION_CODE="${DATE_CODE}${{ github.run_number }}"
+        VERSION_NAME="$(date +%Y.%m.%d).${{ github.run_number }}"
+        echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+        echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+        echo "Building with versionCode: $VERSION_CODE and versionName: $VERSION_NAME"
+      
     - name: Build Release APK
       run: ./gradlew assembleRelease --no-daemon
       
