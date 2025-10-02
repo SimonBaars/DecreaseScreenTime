@@ -92,13 +92,25 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val filter = IntentFilter(Intent.ACTION_USER_PRESENT)
-        registerReceiver(screenUnlockReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(screenUnlockReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(screenUnlockReceiver, filter)
+        }
         
         val screenTimeFilter = IntentFilter(ScreenTimeService.ACTION_SCREEN_TIME_UPDATE)
-        registerReceiver(screenTimeReceiver, screenTimeFilter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(screenTimeReceiver, screenTimeFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(screenTimeReceiver, screenTimeFilter)
+        }
         
         val popupFilter = IntentFilter(OverlayService.ACTION_SHOW_POPUP)
-        registerReceiver(popupReceiver, popupFilter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(popupReceiver, popupFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(popupReceiver, popupFilter)
+        }
         
         updateUnlockCount()
         updateScreenTimeFromPrefs()

@@ -63,13 +63,21 @@ class OverlayService : Service() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         
         // Register receivers
-        registerReceiver(screenTimeReceiver, IntentFilter(ScreenTimeService.ACTION_SCREEN_TIME_UPDATE))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(screenTimeReceiver, IntentFilter(ScreenTimeService.ACTION_SCREEN_TIME_UPDATE), Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(screenTimeReceiver, IntentFilter(ScreenTimeService.ACTION_SCREEN_TIME_UPDATE))
+        }
         
         val screenFilter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
         }
-        registerReceiver(screenOnReceiver, screenFilter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(screenOnReceiver, screenFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(screenOnReceiver, screenFilter)
+        }
         
         schedulePeriodicUpdate()
     }
