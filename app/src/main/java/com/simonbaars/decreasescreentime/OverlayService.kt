@@ -186,8 +186,9 @@ class OverlayService : Service() {
                 val params = view.layoutParams as WindowManager.LayoutParams
                 
                 // Progressive dimming: more time = darker
-                val hoursOver = (minutes - settingsManager.excessiveScreenTimeThresholdMinutes) / 60f
-                val dimAmount = (settingsManager.initialDimAmount + hoursOver * settingsManager.dimIncrementPerHour).coerceAtMost(settingsManager.maxDimAmount)
+                val minutesOver = minutes - settingsManager.excessiveScreenTimeThresholdMinutes
+                val intervalsOver = minutesOver / settingsManager.dimIncrementIntervalMinutes.toFloat()
+                val dimAmount = (settingsManager.initialDimAmount + intervalsOver * settingsManager.dimIncrement).coerceAtMost(settingsManager.maxDimAmount)
                 
                 params.flags = params.flags or WindowManager.LayoutParams.FLAG_DIM_BEHIND
                 params.dimAmount = dimAmount

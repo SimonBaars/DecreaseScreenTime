@@ -27,7 +27,8 @@
     <string name="large_text_size_label">Large Text Size (sp)</string>
     <string name="dimming_section">Screen Dimming Settings</string>
     <string name="initial_dim_label">Initial Dim Amount (0.0-1.0)</string>
-    <string name="dim_increment_label">Dim Increment Per Hour (0.0-1.0)</string>
+    <string name="dim_increment_label">Dim Increment Amount (0.0-1.0)</string>
+    <string name="dim_increment_interval_label">Dim Increment Interval (minutes)</string>
     <string name="max_dim_label">Max Dim Amount (0.0-1.0)</string>
     <string name="save_settings">Save Settings</string>
     <string name="reset_to_defaults">Reset to Defaults</string>

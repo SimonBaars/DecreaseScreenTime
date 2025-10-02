@@ -28,6 +28,7 @@ class SettingsActivity : AppCompatActivity() {
     // Dimming settings
     private lateinit var initialDimInput: EditText
     private lateinit var dimIncrementInput: EditText
+    private lateinit var dimIncrementIntervalInput: EditText
     private lateinit var maxDimInput: EditText
     
     // Buttons
@@ -50,6 +51,7 @@ class SettingsActivity : AppCompatActivity() {
         largeTextSizeInput = findViewById(R.id.largeTextSizeInput)
         initialDimInput = findViewById(R.id.initialDimInput)
         dimIncrementInput = findViewById(R.id.dimIncrementInput)
+        dimIncrementIntervalInput = findViewById(R.id.dimIncrementIntervalInput)
         maxDimInput = findViewById(R.id.maxDimInput)
         saveButton = findViewById(R.id.saveButton)
         resetButton = findViewById(R.id.resetDefaultsButton)
@@ -76,7 +78,8 @@ class SettingsActivity : AppCompatActivity() {
         smallTextSizeInput.setText(settingsManager.smallTextSize.toString())
         largeTextSizeInput.setText(settingsManager.largeTextSize.toString())
         initialDimInput.setText(settingsManager.initialDimAmount.toString())
-        dimIncrementInput.setText(settingsManager.dimIncrementPerHour.toString())
+        dimIncrementInput.setText(settingsManager.dimIncrement.toString())
+        dimIncrementIntervalInput.setText(settingsManager.dimIncrementIntervalMinutes.toString())
         maxDimInput.setText(settingsManager.maxDimAmount.toString())
     }
     
@@ -90,7 +93,8 @@ class SettingsActivity : AppCompatActivity() {
             settingsManager.smallTextSize = smallTextSizeInput.text.toString().toFloat()
             settingsManager.largeTextSize = largeTextSizeInput.text.toString().toFloat()
             settingsManager.initialDimAmount = initialDimInput.text.toString().toFloat()
-            settingsManager.dimIncrementPerHour = dimIncrementInput.text.toString().toFloat()
+            settingsManager.dimIncrement = dimIncrementInput.text.toString().toFloat()
+            settingsManager.dimIncrementIntervalMinutes = dimIncrementIntervalInput.text.toString().toInt()
             settingsManager.maxDimAmount = maxDimInput.text.toString().toFloat()
             
             Toast.makeText(this, "Settings saved successfully", Toast.LENGTH_SHORT).show()
@@ -110,6 +114,7 @@ class SettingsActivity : AppCompatActivity() {
         largeTextSizeInput.setText(SettingsManager.DEFAULT_LARGE_TEXT_SIZE.toString())
         initialDimInput.setText(SettingsManager.DEFAULT_INITIAL_DIM.toString())
         dimIncrementInput.setText(SettingsManager.DEFAULT_DIM_INCREMENT.toString())
+        dimIncrementIntervalInput.setText(SettingsManager.DEFAULT_DIM_INCREMENT_INTERVAL.toString())
         maxDimInput.setText(SettingsManager.DEFAULT_MAX_DIM.toString())
         
         Toast.makeText(this, "Reset to default values", Toast.LENGTH_SHORT).show()

@@ -56,8 +56,11 @@ All app behavior can be customized through the Settings screen, accessible from 
 
 ### Screen Dimming Settings
 - **Initial Dim Amount** (default: 0.3): Screen dimming opacity when threshold is first exceeded (0.0-1.0)
-- **Dim Increment Per Hour** (default: 0.1): Additional dimming per hour over threshold (0.0-1.0)
+- **Dim Increment Amount** (default: 0.1): Additional dimming amount per interval (0.0-1.0)
+- **Dim Increment Interval** (default: 60 minutes): Time interval for applying dim increments
 - **Max Dim Amount** (default: 0.5): Maximum screen dimming opacity (0.0-1.0)
+
+Example: With defaults, dimming increases by 10% every 60 minutes. To get 5% every 10 minutes, set Dim Increment Amount to 0.05 and Dim Increment Interval to 10.
 
 All settings can be reset to their default values using the "Reset to Defaults" button in the Settings screen.
 
