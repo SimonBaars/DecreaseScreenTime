@@ -134,6 +134,7 @@ class ScreenTimeService : Service() {
             prefs.edit()
                 .putLong(KEY_SCREEN_TIME, 0)
                 .putString(KEY_LAST_RESET_DATE, today)
+                .putInt(ScreenUnlockReceiver.KEY_UNLOCK_COUNT, 0)
                 .apply()
         }
     }
@@ -155,6 +156,12 @@ class ScreenTimeService : Service() {
                 putExtra(EXTRA_SCREEN_TIME, totalTime)
             }
             sendBroadcast(intent)
+            
+            // Periodically save the accumulated time to persist progress
+            // Update screenOnTime and reset the session timestamp to avoid double-counting
+            screenOnTime = totalTime
+            lastScreenOnTimestamp = System.currentTimeMillis()
+            saveScreenTime()
         }
     }
     
