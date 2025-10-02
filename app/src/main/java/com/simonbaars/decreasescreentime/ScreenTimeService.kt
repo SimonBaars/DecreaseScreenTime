@@ -51,6 +51,20 @@ class ScreenTimeService : Service() {
         }
     }
     
+    private val unlockReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == Intent.ACTION_USER_PRESENT) {
+                incrementUnlockCount()
+            }
+        }
+    }
+    
+    private fun incrementUnlockCount() {
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val currentCount = prefs.getInt(ScreenUnlockReceiver.KEY_UNLOCK_COUNT, 0)
+        prefs.edit().putInt(ScreenUnlockReceiver.KEY_UNLOCK_COUNT, currentCount + 1).apply()
+    }
+    
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
@@ -65,6 +79,14 @@ class ScreenTimeService : Service() {
             registerReceiver(screenStateReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
             registerReceiver(screenStateReceiver, filter)
+        }
+        
+        // Register unlock receiver
+        val unlockFilter = IntentFilter(Intent.ACTION_USER_PRESENT)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(unlockReceiver, unlockFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(unlockReceiver, unlockFilter)
         }
         
         loadScreenTime()
@@ -96,6 +118,7 @@ class ScreenTimeService : Service() {
             saveScreenTime()
         }
         unregisterReceiver(screenStateReceiver)
+        unregisterReceiver(unlockReceiver)
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -134,6 +157,7 @@ class ScreenTimeService : Service() {
             prefs.edit()
                 .putLong(KEY_SCREEN_TIME, 0)
                 .putString(KEY_LAST_RESET_DATE, today)
+                .putInt(ScreenUnlockReceiver.KEY_UNLOCK_COUNT, 0)
                 .apply()
         }
     }
