@@ -32,9 +32,11 @@ jobs:
       
     - name: Set version variables
       run: |
-        # Use date-based version code: YYYYMMDD + run number (e.g., 20240115001)
+        # Use date-based version code: YYYYMMDDRRR (e.g., 20240115001)
+        # Run number is padded to 3 digits to ensure monotonic increase
         DATE_CODE=$(date +%Y%m%d)
-        VERSION_CODE="${DATE_CODE}${{ github.run_number }}"
+        RUN_NUMBER=$(printf "%03d" ${{ github.run_number }})
+        VERSION_CODE="${DATE_CODE}${RUN_NUMBER}"
         VERSION_NAME="$(date +%Y.%m.%d).${{ github.run_number }}"
         echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
         echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
