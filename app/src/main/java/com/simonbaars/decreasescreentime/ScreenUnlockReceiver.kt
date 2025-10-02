@@ -20,7 +20,7 @@ class ScreenUnlockReceiver : BroadcastReceiver() {
     }
     
     private fun ensureServicesRunning(context: Context) {
-        // Start ScreenTimeService if not already running
+        // Start services (Android will ignore if already running)
         val screenTimeIntent = Intent(context, ScreenTimeService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(screenTimeIntent)
@@ -28,7 +28,6 @@ class ScreenUnlockReceiver : BroadcastReceiver() {
             context.startService(screenTimeIntent)
         }
         
-        // Start OverlayService if not already running
         val overlayIntent = Intent(context, OverlayService::class.java)
         context.startService(overlayIntent)
     }

@@ -6,4 +6,8 @@
     <string name="screen_time_default">Screen Time: 0m</string>
     <string name="screen_time_minutes">Screen Time: %dm</string>
     <string name="screen_time_hours">Screen Time: %dh %dm</string>
+    <string name="overlay_warning_default">Screen time warning</string>
+    <string name="overlay_screen_time">Screen time: %d minutes</string>
+    <string name="overlay_high_screen_time">⚠️ HIGH SCREEN TIME!\n%d minutes today</string>
+    <string name="overlay_excessive_screen_time">⚠️ EXCESSIVE SCREEN TIME!\n%dh %dm today</string>
 </resources>

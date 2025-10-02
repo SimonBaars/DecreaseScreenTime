@@ -11,7 +11,7 @@
         android:id="@+id/overlayMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Screen time warning"
+        android:text="@string/overlay_warning_default"
         android:textColor="@android:color/white"
         android:textSize="18sp"
         android:textStyle="bold"

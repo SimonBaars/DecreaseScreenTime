@@ -8,7 +8,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import androidx.core.app.NotificationCompat
 
 class ScreenTimeService : Service() {
@@ -16,6 +18,16 @@ class ScreenTimeService : Service() {
     private var screenOnTime: Long = 0
     private var lastScreenOnTimestamp: Long = 0
     private var isScreenOn = false
+    private val handler = Handler(Looper.getMainLooper())
+    
+    private val updateRunnable = object : Runnable {
+        override fun run() {
+            if (isScreenOn) {
+                updateScreenTime()
+                handler.postDelayed(this, 30 * 1000) // Update every 30 seconds
+            }
+        }
+    }
     
     private val screenStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -24,9 +36,11 @@ class ScreenTimeService : Service() {
                     isScreenOn = true
                     lastScreenOnTimestamp = System.currentTimeMillis()
                     updateScreenTime()
+                    schedulePeriodicUpdates()
                 }
                 Intent.ACTION_SCREEN_OFF -> {
                     if (isScreenOn) {
+                        cancelPeriodicUpdates()
                         val sessionTime = System.currentTimeMillis() - lastScreenOnTimestamp
                         screenOnTime += sessionTime
                         saveScreenTime()
@@ -56,6 +70,7 @@ class ScreenTimeService : Service() {
         if (powerManager.isInteractive) {
             isScreenOn = true
             lastScreenOnTimestamp = System.currentTimeMillis()
+            schedulePeriodicUpdates()
         }
     }
     
@@ -70,6 +85,7 @@ class ScreenTimeService : Service() {
     
     override fun onDestroy() {
         super.onDestroy()
+        cancelPeriodicUpdates()
         if (isScreenOn) {
             val sessionTime = System.currentTimeMillis() - lastScreenOnTimestamp
             screenOnTime += sessionTime
@@ -148,6 +164,18 @@ class ScreenTimeService : Service() {
             .edit()
             .putInt(ScreenUnlockReceiver.KEY_UNLOCK_COUNT, 0)
             .apply()
+        
+        // Broadcast reset to update UI immediately
+        updateScreenTime()
+    }
+    
+    private fun schedulePeriodicUpdates() {
+        handler.removeCallbacks(updateRunnable)
+        handler.post(updateRunnable)
+    }
+    
+    private fun cancelPeriodicUpdates() {
+        handler.removeCallbacks(updateRunnable)
     }
     
     companion object {

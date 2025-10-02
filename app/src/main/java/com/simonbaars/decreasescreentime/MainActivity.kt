@@ -1,9 +1,11 @@
 package com.simonbaars.decreasescreentime
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -12,6 +14,8 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
     private lateinit var unlockCountText: TextView
@@ -57,6 +61,18 @@ class MainActivity : AppCompatActivity() {
 
         updateUnlockCount()
         updateScreenTimeFromPrefs()
+        
+        // Request notification permission for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) 
+                != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    REQUEST_NOTIFICATION_PERMISSION
+                )
+            }
+        }
         
         // Start services
         startScreenTimeService()
@@ -186,5 +202,6 @@ class MainActivity : AppCompatActivity() {
     
     companion object {
         private const val REQUEST_OVERLAY_PERMISSION = 1001
+        private const val REQUEST_NOTIFICATION_PERMISSION = 1002
     }
 }

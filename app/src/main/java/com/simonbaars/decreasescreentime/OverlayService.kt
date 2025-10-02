@@ -146,9 +146,9 @@ class OverlayService : Service() {
             val mins = minutes % 60
             
             val message = when {
-                minutes >= 60 -> "⚠️ EXCESSIVE SCREEN TIME!\n${hours}h ${mins}m today"
-                minutes >= 30 -> "⚠️ HIGH SCREEN TIME!\n${mins} minutes today"
-                else -> "Screen time: ${mins} minutes"
+                minutes >= 60 -> getString(R.string.overlay_excessive_screen_time, hours, mins)
+                minutes >= 30 -> getString(R.string.overlay_high_screen_time, mins)
+                else -> getString(R.string.overlay_screen_time, mins)
             }
             
             messageText.text = message
@@ -169,7 +169,7 @@ class OverlayService : Service() {
                 
                 // Progressive dimming: more time = darker
                 val hoursOver = (minutes - 60) / 60f
-                val dimAmount = 0.3f + (hoursOver * 0.1f).coerceAtMost(0.5f)
+                val dimAmount = (0.3f + hoursOver * 0.1f).coerceAtMost(0.5f)
                 
                 params.flags = params.flags or WindowManager.LayoutParams.FLAG_DIM_BEHIND
                 params.dimAmount = dimAmount
@@ -196,9 +196,7 @@ class OverlayService : Service() {
     
     private fun showAnnoyingPopup() {
         // Can't show AlertDialog from service directly, send broadcast to MainActivity
-        val intent = Intent(ACTION_SHOW_POPUP).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val intent = Intent(ACTION_SHOW_POPUP)
         sendBroadcast(intent)
     }
     
