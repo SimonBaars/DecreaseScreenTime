@@ -10,4 +10,8 @@
     <string name="overlay_screen_time">Screen time: %d minutes</string>
     <string name="overlay_high_screen_time">⚠️ HIGH SCREEN TIME!\n%d minutes today</string>
     <string name="overlay_excessive_screen_time">⚠️ EXCESSIVE SCREEN TIME!\n%dh %dm today</string>
+    <string name="export_csv">Export to CSV</string>
+    <string name="export_success">Exported to: %s</string>
+    <string name="export_failed">Failed to export data</string>
+    <string name="permission_needed">Storage permission needed to export CSV</string>
 </resources>

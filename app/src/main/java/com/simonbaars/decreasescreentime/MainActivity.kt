@@ -21,6 +21,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var unlockCountText: TextView
     private lateinit var screenTimeText: TextView
     private lateinit var resetButton: Button
+    private lateinit var exportButton: Button
     
     private val screenUnlockReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -54,9 +55,14 @@ class MainActivity : AppCompatActivity() {
         unlockCountText = findViewById(R.id.unlockCountText)
         screenTimeText = findViewById(R.id.screenTimeText)
         resetButton = findViewById(R.id.resetButton)
+        exportButton = findViewById(R.id.exportButton)
 
         resetButton.setOnClickListener {
             resetData()
+        }
+        
+        exportButton.setOnClickListener {
+            exportToCsv()
         }
 
         updateUnlockCount()
@@ -212,8 +218,67 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
     
+    private fun exportToCsv() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ doesn't need storage permission for public directories
+            performExport()
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) 
+                == PackageManager.PERMISSION_GRANTED) {
+                performExport()
+            } else {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                    REQUEST_STORAGE_PERMISSION
+                )
+            }
+        } else {
+            performExport()
+        }
+    }
+    
+    private fun performExport() {
+        val file = CsvExporter.exportToCsv(this)
+        if (file != null) {
+            AlertDialog.Builder(this)
+                .setTitle("Export Successful")
+                .setMessage(getString(R.string.export_success, file.absolutePath))
+                .setPositiveButton("OK", null)
+                .show()
+        } else {
+            AlertDialog.Builder(this)
+                .setTitle("Export Failed")
+                .setMessage(getString(R.string.export_failed))
+                .setPositiveButton("OK", null)
+                .show()
+        }
+    }
+    
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            REQUEST_STORAGE_PERMISSION -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    performExport()
+                } else {
+                    AlertDialog.Builder(this)
+                        .setTitle("Permission Required")
+                        .setMessage(getString(R.string.permission_needed))
+                        .setPositiveButton("OK", null)
+                        .show()
+                }
+            }
+        }
+    }
+    
     companion object {
         private const val REQUEST_OVERLAY_PERMISSION = 1001
         private const val REQUEST_NOTIFICATION_PERMISSION = 1002
+        private const val REQUEST_STORAGE_PERMISSION = 1003
     }
 }

@@ -154,6 +154,13 @@ class ScreenTimeService : Service() {
         
         // Reset daily at midnight
         if (lastResetDate != today) {
+            // Save yesterday's data to history before resetting
+            if (lastResetDate?.isNotEmpty() == true) {
+                val previousScreenTime = prefs.getLong(KEY_SCREEN_TIME, 0)
+                val previousUnlockCount = prefs.getInt(ScreenUnlockReceiver.KEY_UNLOCK_COUNT, 0)
+                CsvExporter.saveHistoryEntry(this, lastResetDate, previousScreenTime, previousUnlockCount)
+            }
+            
             screenOnTime = 0
             prefs.edit()
                 .putLong(KEY_SCREEN_TIME, 0)
@@ -195,13 +202,20 @@ class ScreenTimeService : Service() {
     }
     
     private fun resetScreenTime() {
+        // Save current data to history before resetting
+        val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val currentScreenTime = prefs.getLong(KEY_SCREEN_TIME, 0)
+        val currentUnlockCount = prefs.getInt(ScreenUnlockReceiver.KEY_UNLOCK_COUNT, 0)
+        val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+            .format(java.util.Date())
+        CsvExporter.saveHistoryEntry(this, today, currentScreenTime, currentUnlockCount)
+        
         screenOnTime = 0
         lastScreenOnTimestamp = System.currentTimeMillis()
         saveScreenTime()
         
         // Reset unlock count too
-        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
+        prefs.edit()
             .putInt(ScreenUnlockReceiver.KEY_UNLOCK_COUNT, 0)
             .apply()
         
