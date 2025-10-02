@@ -41,8 +41,12 @@ class OverlayService : Service() {
     private val screenOnReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == Intent.ACTION_SCREEN_ON) {
+                Log.d(TAG, "screenOnReceiver: screen turned on")
                 schedulePeriodicUpdate()
+                // Update overlay immediately when screen turns on
+                updateOverlay()
             } else if (intent?.action == Intent.ACTION_SCREEN_OFF) {
+                Log.d(TAG, "screenOnReceiver: screen turned off")
                 cancelPeriodicUpdate()
             }
         }
@@ -220,13 +224,15 @@ class OverlayService : Service() {
                 val intervalsOver = minutesOver / settingsManager.dimIncrementIntervalMinutes.toFloat()
                 val dimAmount = (settingsManager.initialDimAmount + intervalsOver * settingsManager.dimIncrement).coerceAtMost(settingsManager.maxDimAmount)
                 
+                Log.d(TAG, "applyScreenDimming: dimAmount=$dimAmount")
+                
                 params.flags = params.flags or WindowManager.LayoutParams.FLAG_DIM_BEHIND
                 params.dimAmount = dimAmount
                 
                 try {
                     windowManager.updateViewLayout(view, params)
                 } catch (e: Exception) {
-                    // Ignore update errors
+                    Log.w(TAG, "applyScreenDimming: failed to update layout", e)
                 }
             }
         }
