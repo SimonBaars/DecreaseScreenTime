@@ -56,6 +56,14 @@ The project includes GitHub Actions workflows for automated builds:
 - **Build APK** (`build.yml`): Runs on every push to main/develop branches and pull requests, creates debug APK artifacts
 - **Build and Release APK** (`build-release.yml`): Runs when a version tag is pushed, creates a signed release APK and attaches it to GitHub releases
 
+#### Automatic Versioning
+
+Every CI build automatically generates a unique version number:
+- **Version Code**: Format `YYYYMMDDRRR` (e.g., `20240115001` for January 15, 2024, run #1)
+- **Version Name**: Format `YYYY.MM.DD.RUN` (e.g., `2025.01.15.1`)
+
+This ensures that every CI-built APK has a higher version number than previous builds, allowing proper installation over existing versions. Local builds default to version `1` / `1.0`.
+
 ## Installation
 
 ### From APK
