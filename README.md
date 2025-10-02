@@ -6,9 +6,10 @@ App that rewards low screentime and punishes high screen time
 - **Screen Unlock Counter**: Tracks every time you unlock your device (Android 12+)
 - **Screen Time Tracking**: Monitors total screen-on time throughout the day
 - **Progressive Annoyance System**: Increasingly intrusive warnings as screen time increases
-  - **>15 minutes**: Persistent overlay message showing current screen time
-  - **>30 minutes**: Larger warning message with increased visibility
-  - **>1 hour**: Screen dimming that progressively gets darker + popup warnings every 2 minutes
+  - **>15 minutes** (configurable): Persistent overlay message showing current screen time
+  - **>30 minutes** (configurable): Larger warning message with increased visibility
+  - **>1 hour** (configurable): Screen dimming that progressively gets darker + popup warnings every 2 minutes
+- **Fully Configurable Settings**: All thresholds, intervals, and display settings can be customized
 - **Daily Reset**: Screen time automatically resets at midnight
 - **Persistent Storage**: All data is saved and persists across app restarts
 - **Simple UI**: Clean interface showing both unlock count and screen time
@@ -30,7 +31,35 @@ The app uses multiple Android system features to track and discourage excessive 
 2. **ScreenTimeService**: Foreground service that tracks screen-on time and broadcasts updates
 3. **OverlayService**: Manages the on-screen overlay that displays warnings based on usage thresholds
 4. **MainActivity**: Displays current statistics and provides controls to the user
-5. **SharedPreferences**: Persists all tracking data across app sessions and device reboots
+5. **SettingsActivity**: Allows users to configure all thresholds and display preferences
+6. **SettingsManager**: Manages user preferences and provides default values
+7. **SharedPreferences**: Persists all tracking data and settings across app sessions and device reboots
+
+## Configuration
+
+All app behavior can be customized through the Settings screen, accessible from the main app interface. The following values are configurable:
+
+### Screen Time Thresholds
+- **Overlay Threshold** (default: 15 minutes): When to start showing the overlay warning
+- **High Screen Time Threshold** (default: 30 minutes): Warning level with larger text
+- **Excessive Screen Time Threshold** (default: 60 minutes): Critical level with dimming and popups
+
+### Popup Settings
+- **Popup Frequency** (default: 2 minutes): How often to show popup warnings when threshold is exceeded
+
+### Update Settings
+- **Update Interval** (default: 30 seconds): How frequently to refresh the overlay display
+
+### Text Size Settings
+- **Small Text Size** (default: 18sp): Text size for normal warnings
+- **Large Text Size** (default: 24sp): Text size for high/excessive warnings
+
+### Screen Dimming Settings
+- **Initial Dim Amount** (default: 0.3): Screen dimming opacity when threshold is first exceeded (0.0-1.0)
+- **Dim Increment Per Hour** (default: 0.1): Additional dimming per hour over threshold (0.0-1.0)
+- **Max Dim Amount** (default: 0.5): Maximum screen dimming opacity (0.0-1.0)
+
+All settings can be reset to their default values using the "Reset to Defaults" button in the Settings screen.
 
 ## Requirements
 
