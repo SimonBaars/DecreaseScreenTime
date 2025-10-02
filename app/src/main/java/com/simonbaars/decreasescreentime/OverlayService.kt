@@ -62,6 +62,9 @@ class OverlayService : Service() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         
+        // Load initial screen time from SharedPreferences
+        loadInitialScreenTime()
+        
         // Register receivers
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(screenTimeReceiver, IntentFilter(ScreenTimeService.ACTION_SCREEN_TIME_UPDATE), Context.RECEIVER_NOT_EXPORTED)
@@ -103,6 +106,11 @@ class OverlayService : Service() {
     
     private fun cancelPeriodicUpdate() {
         handler.removeCallbacks(updateRunnable)
+    }
+    
+    private fun loadInitialScreenTime() {
+        val prefs = getSharedPreferences(ScreenTimeService.PREFS_NAME, Context.MODE_PRIVATE)
+        currentScreenTime = prefs.getLong(ScreenTimeService.KEY_SCREEN_TIME, 0)
     }
     
     private fun updateOverlay() {
