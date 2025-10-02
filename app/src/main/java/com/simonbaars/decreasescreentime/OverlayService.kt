@@ -10,6 +10,8 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.provider.Settings
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -30,6 +32,7 @@ class OverlayService : Service() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == ScreenTimeService.ACTION_SCREEN_TIME_UPDATE) {
                 currentScreenTime = intent.getLongExtra(ScreenTimeService.EXTRA_SCREEN_TIME, 0)
+                Log.d(TAG, "screenTimeReceiver: received update, screenTime=$currentScreenTime ms")
                 updateOverlay()
             }
         }
@@ -38,8 +41,12 @@ class OverlayService : Service() {
     private val screenOnReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == Intent.ACTION_SCREEN_ON) {
+                Log.d(TAG, "screenOnReceiver: screen turned on")
                 schedulePeriodicUpdate()
+                // Update overlay immediately when screen turns on
+                updateOverlay()
             } else if (intent?.action == Intent.ACTION_SCREEN_OFF) {
+                Log.d(TAG, "screenOnReceiver: screen turned off")
                 cancelPeriodicUpdate()
             }
         }
@@ -61,11 +68,20 @@ class OverlayService : Service() {
     
     override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "onCreate: OverlayService starting")
+        
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         settingsManager = SettingsManager(this)
         
         // Load initial screen time from SharedPreferences
         loadInitialScreenTime()
+        Log.d(TAG, "onCreate: initial screen time = $currentScreenTime ms")
+        
+        // Check overlay permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val canDrawOverlays = Settings.canDrawOverlays(this)
+            Log.d(TAG, "onCreate: overlay permission granted = $canDrawOverlays")
+        }
         
         // Register receivers
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -85,6 +101,9 @@ class OverlayService : Service() {
         }
         
         schedulePeriodicUpdate()
+        
+        // Trigger initial overlay update
+        updateOverlay()
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -118,7 +137,17 @@ class OverlayService : Service() {
     private fun updateOverlay() {
         val minutes = currentScreenTime / (60 * 1000)
         
+        Log.d(TAG, "updateOverlay: minutes=$minutes, threshold=${settingsManager.overlayThresholdMinutes}")
+        
         if (minutes >= settingsManager.overlayThresholdMinutes) {
+            // Check if we have overlay permission
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (!Settings.canDrawOverlays(this)) {
+                    Log.e(TAG, "Overlay permission not granted!")
+                    return
+                }
+            }
+            
             if (overlayView == null) {
                 createOverlay()
             }
@@ -130,6 +159,8 @@ class OverlayService : Service() {
     }
     
     private fun createOverlay() {
+        Log.d(TAG, "createOverlay: attempting to create overlay")
+        
         val layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -152,8 +183,10 @@ class OverlayService : Service() {
         
         try {
             windowManager.addView(overlayView, layoutParams)
+            Log.d(TAG, "createOverlay: overlay created successfully")
         } catch (e: Exception) {
-            // Permission not granted, overlay won't be shown
+            Log.e(TAG, "createOverlay: failed to create overlay", e)
+            overlayView = null
         }
     }
     
@@ -169,6 +202,7 @@ class OverlayService : Service() {
                 else -> getString(R.string.overlay_screen_time, mins)
             }
             
+            Log.d(TAG, "updateOverlayContent: updating message to: $message")
             messageText.text = message
             
             // Adjust text size based on thresholds
@@ -177,7 +211,7 @@ class OverlayService : Service() {
                 else -> settingsManager.smallTextSize
             }
             messageText.textSize = textSize
-        }
+        } ?: Log.w(TAG, "updateOverlayContent: overlayView is null")
     }
     
     private fun applyScreenDimming(minutes: Long) {
@@ -190,13 +224,15 @@ class OverlayService : Service() {
                 val intervalsOver = minutesOver / settingsManager.dimIncrementIntervalMinutes.toFloat()
                 val dimAmount = (settingsManager.initialDimAmount + intervalsOver * settingsManager.dimIncrement).coerceAtMost(settingsManager.maxDimAmount)
                 
+                Log.d(TAG, "applyScreenDimming: dimAmount=$dimAmount")
+                
                 params.flags = params.flags or WindowManager.LayoutParams.FLAG_DIM_BEHIND
                 params.dimAmount = dimAmount
                 
                 try {
                     windowManager.updateViewLayout(view, params)
                 } catch (e: Exception) {
-                    // Ignore update errors
+                    Log.w(TAG, "applyScreenDimming: failed to update layout", e)
                 }
             }
         }
@@ -204,10 +240,11 @@ class OverlayService : Service() {
     
     private fun removeOverlay() {
         overlayView?.let {
+            Log.d(TAG, "removeOverlay: removing overlay")
             try {
                 windowManager.removeView(it)
             } catch (e: Exception) {
-                // View already removed
+                Log.w(TAG, "removeOverlay: failed to remove view", e)
             }
             overlayView = null
         }
@@ -220,6 +257,7 @@ class OverlayService : Service() {
     }
     
     companion object {
+        private const val TAG = "OverlayService"
         const val ACTION_SHOW_POPUP = "com.simonbaars.decreasescreentime.SHOW_POPUP"
     }
 }
