@@ -3,11 +3,13 @@ package com.simonbaars.decreasescreentime
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 
 class ScreenUnlockReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent?.action == Intent.ACTION_USER_PRESENT && context != null) {
             incrementUnlockCount(context)
+            ensureServicesRunning(context)
         }
     }
 
@@ -15,6 +17,19 @@ class ScreenUnlockReceiver : BroadcastReceiver() {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val currentCount = prefs.getInt(KEY_UNLOCK_COUNT, 0)
         prefs.edit().putInt(KEY_UNLOCK_COUNT, currentCount + 1).apply()
+    }
+    
+    private fun ensureServicesRunning(context: Context) {
+        // Start services (Android will ignore if already running)
+        val screenTimeIntent = Intent(context, ScreenTimeService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(screenTimeIntent)
+        } else {
+            context.startService(screenTimeIntent)
+        }
+        
+        val overlayIntent = Intent(context, OverlayService::class.java)
+        context.startService(overlayIntent)
     }
 
     companion object {
