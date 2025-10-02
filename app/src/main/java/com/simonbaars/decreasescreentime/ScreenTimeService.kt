@@ -24,6 +24,7 @@ class ScreenTimeService : Service() {
         override fun run() {
             if (isScreenOn) {
                 updateScreenTime()
+                persistCurrentScreenTime()
                 handler.postDelayed(this, 30 * 1000) // Update every 30 seconds
             }
         }
@@ -167,6 +168,17 @@ class ScreenTimeService : Service() {
             .edit()
             .putLong(KEY_SCREEN_TIME, screenOnTime)
             .apply()
+    }
+    
+    private fun persistCurrentScreenTime() {
+        if (isScreenOn) {
+            val currentSessionTime = System.currentTimeMillis() - lastScreenOnTimestamp
+            val totalTime = screenOnTime + currentSessionTime
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putLong(KEY_SCREEN_TIME, totalTime)
+                .apply()
+        }
     }
     
     private fun updateScreenTime() {
