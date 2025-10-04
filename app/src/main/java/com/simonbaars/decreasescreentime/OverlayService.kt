@@ -152,7 +152,6 @@ class OverlayService : Service() {
                 createOverlay()
             }
             updateOverlayContent(minutes)
-            applyScreenDimming(minutes)
         } else {
             removeOverlay()
         }
@@ -215,30 +214,7 @@ class OverlayService : Service() {
         } ?: Log.w(TAG, "updateOverlayContent: overlayView is null")
     }
     
-    private fun applyScreenDimming(minutes: Long) {
-        if (minutes >= settingsManager.excessiveScreenTimeThresholdMinutes) {
-            overlayView?.let { view ->
-                val params = view.layoutParams as WindowManager.LayoutParams
-                
-                // Progressive dimming: more time = darker
-                val minutesOver = minutes - settingsManager.excessiveScreenTimeThresholdMinutes
-                val intervalsOver = minutesOver / settingsManager.dimIncrementIntervalMinutes.toFloat()
-                val dimAmount = (settingsManager.initialDimAmount + intervalsOver * settingsManager.dimIncrement).coerceAtMost(settingsManager.maxDimAmount)
-                
-                Log.d(TAG, "applyScreenDimming: dimAmount=$dimAmount")
-                
-                params.flags = params.flags or WindowManager.LayoutParams.FLAG_DIM_BEHIND
-                params.dimAmount = dimAmount
-                
-                try {
-                    windowManager.updateViewLayout(view, params)
-                } catch (e: Exception) {
-                    Log.w(TAG, "applyScreenDimming: failed to update layout", e)
-                }
-            }
-        }
-    }
-    
+
     private fun removeOverlay() {
         overlayView?.let {
             Log.d(TAG, "removeOverlay: removing overlay")
