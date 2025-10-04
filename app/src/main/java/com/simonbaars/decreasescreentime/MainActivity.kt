@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 class MainActivity : AppCompatActivity() {
     private lateinit var unlockCountText: TextView
     private lateinit var screenTimeText: TextView
+    private lateinit var commitHashText: TextView
     private lateinit var resetButton: Button
     private lateinit var settingsButton: Button
     private lateinit var exportButton: Button
@@ -55,6 +56,7 @@ class MainActivity : AppCompatActivity() {
 
         unlockCountText = findViewById(R.id.unlockCountText)
         screenTimeText = findViewById(R.id.screenTimeText)
+        commitHashText = findViewById(R.id.commitHashText)
         resetButton = findViewById(R.id.resetButton)
         settingsButton = findViewById(R.id.settingsButton)
         exportButton = findViewById(R.id.exportButton)
@@ -74,6 +76,7 @@ class MainActivity : AppCompatActivity() {
 
         updateUnlockCount()
         updateScreenTimeFromPrefs()
+        updateCommitHash()
         
         // Request notification permission for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -202,6 +205,11 @@ class MainActivity : AppCompatActivity() {
         }
         
         screenTimeText.text = timeString
+    }
+    
+    private fun updateCommitHash() {
+        val commitHash = BuildConfig.COMMIT_HASH
+        commitHashText.text = getString(R.string.commit_hash, commitHash)
     }
 
     private fun resetData() {

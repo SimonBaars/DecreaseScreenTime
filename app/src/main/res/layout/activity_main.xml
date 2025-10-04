@@ -67,9 +67,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/settings_button"
+        app:layout_constraintBottom_toTopOf="@id/commitHashText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/commitHashText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/commit_hash_default"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="32dp" />
+        android:layout_marginBottom="16dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

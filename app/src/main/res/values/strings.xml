@@ -42,4 +42,8 @@
     <string name="export_success">Exported to: %s</string>
     <string name="export_failed">Failed to export data</string>
     <string name="permission_needed">Storage permission needed to export CSV</string>
+    
+    <!-- Build info -->
+    <string name="commit_hash_default">Build: dev</string>
+    <string name="commit_hash">Build: %s</string>
 </resources>
