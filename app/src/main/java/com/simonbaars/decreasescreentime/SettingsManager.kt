@@ -38,23 +38,6 @@ class SettingsManager(context: Context) {
         get() = prefs.getFloat(KEY_LARGE_TEXT_SIZE, DEFAULT_LARGE_TEXT_SIZE)
         set(value) = prefs.edit().putFloat(KEY_LARGE_TEXT_SIZE, value).apply()
     
-    // Dimming settings
-    var initialDimAmount: Float
-        get() = prefs.getFloat(KEY_INITIAL_DIM, DEFAULT_INITIAL_DIM)
-        set(value) = prefs.edit().putFloat(KEY_INITIAL_DIM, value).apply()
-    
-    var dimIncrement: Float
-        get() = prefs.getFloat(KEY_DIM_INCREMENT, DEFAULT_DIM_INCREMENT)
-        set(value) = prefs.edit().putFloat(KEY_DIM_INCREMENT, value).apply()
-    
-    var dimIncrementIntervalMinutes: Int
-        get() = prefs.getInt(KEY_DIM_INCREMENT_INTERVAL, DEFAULT_DIM_INCREMENT_INTERVAL)
-        set(value) = prefs.edit().putInt(KEY_DIM_INCREMENT_INTERVAL, value).apply()
-    
-    var maxDimAmount: Float
-        get() = prefs.getFloat(KEY_MAX_DIM, DEFAULT_MAX_DIM)
-        set(value) = prefs.edit().putFloat(KEY_MAX_DIM, value).apply()
-    
     companion object {
         private const val PREFS_NAME = "settings_prefs"
         
@@ -66,10 +49,6 @@ class SettingsManager(context: Context) {
         private const val KEY_UPDATE_INTERVAL = "update_interval"
         private const val KEY_SMALL_TEXT_SIZE = "small_text_size"
         private const val KEY_LARGE_TEXT_SIZE = "large_text_size"
-        private const val KEY_INITIAL_DIM = "initial_dim"
-        private const val KEY_DIM_INCREMENT = "dim_increment"
-        private const val KEY_DIM_INCREMENT_INTERVAL = "dim_increment_interval"
-        private const val KEY_MAX_DIM = "max_dim"
         
         // Default values
         const val DEFAULT_OVERLAY_THRESHOLD = 15  // minutes
@@ -79,9 +58,5 @@ class SettingsManager(context: Context) {
         const val DEFAULT_UPDATE_INTERVAL = 30    // seconds
         const val DEFAULT_SMALL_TEXT_SIZE = 18f
         const val DEFAULT_LARGE_TEXT_SIZE = 24f
-        const val DEFAULT_INITIAL_DIM = 0.3f      // 30%
-        const val DEFAULT_DIM_INCREMENT = 0.1f    // 10%
-        const val DEFAULT_DIM_INCREMENT_INTERVAL = 60 // minutes (every hour by default)
-        const val DEFAULT_MAX_DIM = 0.5f          // 50%
     }
 }
