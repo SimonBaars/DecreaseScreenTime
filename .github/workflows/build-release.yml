@@ -35,9 +35,12 @@ jobs:
         RUN_NUMBER=$(printf "%03d" ${{ github.run_number }})
         VERSION_CODE="${DATE_CODE}${RUN_NUMBER}"
         VERSION_NAME="$(date +%Y.%m.%d).${{ github.run_number }}"
+        COMMIT_HASH=$(git rev-parse --short HEAD)
         echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
         echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+        echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
         echo "Building with versionCode: $VERSION_CODE and versionName: $VERSION_NAME"
+        echo "Building with commit hash: $COMMIT_HASH"
       
     - name: Build Release APK
       run: ./gradlew assembleRelease --no-daemon

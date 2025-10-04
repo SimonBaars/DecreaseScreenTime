@@ -13,6 +13,9 @@ android {
         targetSdk = 34
         versionCode = (System.getenv("VERSION_CODE")?.toIntOrNull() ?: 1)
         versionName = (System.getenv("VERSION_NAME") ?: "1.0")
+        
+        // Add commit hash to BuildConfig
+        buildConfigField("String", "COMMIT_HASH", "\"${System.getenv("COMMIT_HASH") ?: "dev"}\"")
     }
 
     buildTypes {
@@ -30,6 +33,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 
