@@ -27,6 +27,7 @@ class OverlayService : Service() {
     private var currentScreenTime: Long = 0
     private var popupShown = false
     private lateinit var settingsManager: SettingsManager
+    private var isScreenOn = true  // Track screen state to avoid unnecessary operations
     
     private val screenTimeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -42,12 +43,18 @@ class OverlayService : Service() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == Intent.ACTION_SCREEN_ON) {
                 Log.d(TAG, "screenOnReceiver: screen turned on")
+                isScreenOn = true
                 schedulePeriodicUpdate()
+                // Request fresh screen time from ScreenTimeService to ensure we have latest data
+                requestScreenTimeUpdate()
                 // Update overlay immediately when screen turns on
                 updateOverlay()
             } else if (intent?.action == Intent.ACTION_SCREEN_OFF) {
                 Log.d(TAG, "screenOnReceiver: screen turned off")
+                isScreenOn = false
                 cancelPeriodicUpdate()
+                // Remove overlay when screen is off to save resources
+                removeOverlay()
             }
         }
     }
@@ -100,10 +107,20 @@ class OverlayService : Service() {
             registerReceiver(screenOnReceiver, screenFilter)
         }
         
+        // Check if screen is currently on
+        val powerManager = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+        isScreenOn = powerManager.isInteractive
+        Log.d(TAG, "onCreate: screen is currently ${if (isScreenOn) "on" else "off"}")
+        
+        // Request immediate screen time update to ensure we have latest data
+        requestScreenTimeUpdate()
+        
         schedulePeriodicUpdate()
         
-        // Trigger initial overlay update
-        updateOverlay()
+        // Trigger initial overlay update only if screen is on
+        if (isScreenOn) {
+            updateOverlay()
+        }
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -132,12 +149,27 @@ class OverlayService : Service() {
     private fun loadInitialScreenTime() {
         val prefs = getSharedPreferences(ScreenTimeService.PREFS_NAME, Context.MODE_PRIVATE)
         currentScreenTime = prefs.getLong(ScreenTimeService.KEY_SCREEN_TIME, 0)
+        Log.d(TAG, "loadInitialScreenTime: loaded $currentScreenTime ms from preferences")
+    }
+    
+    private fun requestScreenTimeUpdate() {
+        // Request ScreenTimeService to send current screen time via broadcast
+        // This ensures we have the most up-to-date value
+        val intent = Intent(ACTION_REQUEST_SCREEN_TIME_UPDATE)
+        sendBroadcast(intent)
+        Log.d(TAG, "requestScreenTimeUpdate: requested screen time update")
     }
     
     private fun updateOverlay() {
+        // Don't show overlay when screen is off
+        if (!isScreenOn) {
+            Log.d(TAG, "updateOverlay: screen is off, skipping overlay update")
+            return
+        }
+        
         val minutes = currentScreenTime / (60 * 1000)
         
-        Log.d(TAG, "updateOverlay: minutes=$minutes, threshold=${settingsManager.overlayThresholdMinutes}")
+        Log.d(TAG, "updateOverlay: minutes=$minutes, threshold=${settingsManager.overlayThresholdMinutes}, overlayView=${overlayView != null}")
         
         if (minutes >= settingsManager.overlayThresholdMinutes) {
             // Check if we have overlay permission
@@ -151,8 +183,12 @@ class OverlayService : Service() {
             if (overlayView == null) {
                 createOverlay()
             }
-            updateOverlayContent(minutes)
+            // Only update content if overlay was successfully created
+            if (overlayView != null) {
+                updateOverlayContent(minutes)
+            }
         } else {
+            Log.d(TAG, "updateOverlay: below threshold, removing overlay")
             removeOverlay()
         }
     }
@@ -236,5 +272,6 @@ class OverlayService : Service() {
     companion object {
         private const val TAG = "OverlayService"
         const val ACTION_SHOW_POPUP = "com.simonbaars.decreasescreentime.SHOW_POPUP"
+        const val ACTION_REQUEST_SCREEN_TIME_UPDATE = "com.simonbaars.decreasescreentime.REQUEST_SCREEN_TIME_UPDATE"
     }
 }

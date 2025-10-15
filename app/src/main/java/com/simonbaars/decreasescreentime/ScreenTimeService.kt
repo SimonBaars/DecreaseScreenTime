@@ -60,6 +60,15 @@ class ScreenTimeService : Service() {
         }
     }
     
+    private val screenTimeRequestReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == ACTION_REQUEST_SCREEN_TIME_UPDATE) {
+                // Immediately send current screen time
+                updateScreenTime()
+            }
+        }
+    }
+    
     private fun incrementUnlockCount() {
         val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val currentCount = prefs.getInt(ScreenUnlockReceiver.KEY_UNLOCK_COUNT, 0)
@@ -88,6 +97,14 @@ class ScreenTimeService : Service() {
             registerReceiver(unlockReceiver, unlockFilter, Context.RECEIVER_NOT_EXPORTED)
         } else {
             registerReceiver(unlockReceiver, unlockFilter)
+        }
+        
+        // Register screen time request receiver
+        val requestFilter = IntentFilter(ACTION_REQUEST_SCREEN_TIME_UPDATE)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(screenTimeRequestReceiver, requestFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(screenTimeRequestReceiver, requestFilter)
         }
         
         loadScreenTime()
@@ -120,6 +137,7 @@ class ScreenTimeService : Service() {
         }
         unregisterReceiver(screenStateReceiver)
         unregisterReceiver(unlockReceiver)
+        unregisterReceiver(screenTimeRequestReceiver)
     }
     
     override fun onBind(intent: Intent?): IBinder? = null
@@ -240,6 +258,7 @@ class ScreenTimeService : Service() {
         const val KEY_LAST_RESET_DATE = "last_reset_date"
         const val ACTION_RESET_SCREEN_TIME = "com.simonbaars.decreasescreentime.RESET_SCREEN_TIME"
         const val ACTION_SCREEN_TIME_UPDATE = "com.simonbaars.decreasescreentime.SCREEN_TIME_UPDATE"
+        const val ACTION_REQUEST_SCREEN_TIME_UPDATE = "com.simonbaars.decreasescreentime.REQUEST_SCREEN_TIME_UPDATE"
         const val EXTRA_SCREEN_TIME = "extra_screen_time"
     }
 }
