@@ -43,7 +43,8 @@ class OverlayService : Service() {
             if (intent?.action == Intent.ACTION_SCREEN_ON) {
                 Log.d(TAG, "screenOnReceiver: screen turned on")
                 schedulePeriodicUpdate()
-                // Update overlay immediately when screen turns on
+                // Reload screen time and update overlay immediately when screen turns on
+                loadInitialScreenTime()
                 updateOverlay()
             } else if (intent?.action == Intent.ACTION_SCREEN_OFF) {
                 Log.d(TAG, "screenOnReceiver: screen turned off")
@@ -54,6 +55,8 @@ class OverlayService : Service() {
     
     private val updateRunnable = object : Runnable {
         override fun run() {
+            // Reload screen time from SharedPreferences to ensure we have the latest value
+            loadInitialScreenTime()
             updateOverlay()
             // Show popup based on configurable threshold and frequency
             val minutes = currentScreenTime / (60 * 1000)
