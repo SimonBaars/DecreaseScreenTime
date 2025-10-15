@@ -16,8 +16,10 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.Animation
+import android.view.animation.TranslateAnimation
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
+import kotlin.random.Random
 
 class OverlayService : Service() {
     
@@ -25,8 +27,10 @@ class OverlayService : Service() {
     private var overlayView: View? = null
     private val handler = Handler(Looper.getMainLooper())
     private var currentScreenTime: Long = 0
-    private var popupShown = false
+    private var annoyingAnimationsActive = false
     private lateinit var settingsManager: SettingsManager
+    private val annoyingViews = mutableListOf<View>()
+    private val annoyingEmojis = listOf("🥕", "🙈", "📱", "⏰", "👀", "🚫", "😴", "🌙", "🏃", "🧘")
     
     private val screenTimeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -58,12 +62,18 @@ class OverlayService : Service() {
             // Reload screen time from SharedPreferences to ensure we have the latest value
             loadInitialScreenTime()
             updateOverlay()
-            // Show popup based on configurable threshold and frequency
+            // Show annoying animations on overlay when excessive threshold is reached
             val minutes = currentScreenTime / (60 * 1000)
-            if (minutes >= settingsManager.excessiveScreenTimeThresholdMinutes && !popupShown) {
-                showAnnoyingPopup()
-                popupShown = true
-                handler.postDelayed({ popupShown = false }, settingsManager.popupFrequencyMinutes * 60 * 1000L)
+            if (minutes >= settingsManager.excessiveScreenTimeThresholdMinutes) {
+                if (!annoyingAnimationsActive) {
+                    startAnnoyingAnimations()
+                    annoyingAnimationsActive = true
+                }
+            } else {
+                if (annoyingAnimationsActive) {
+                    stopAnnoyingAnimations()
+                    annoyingAnimationsActive = false
+                }
             }
             handler.postDelayed(this, settingsManager.updateIntervalSeconds * 1000L)
         }
@@ -115,6 +125,7 @@ class OverlayService : Service() {
     
     override fun onDestroy() {
         super.onDestroy()
+        stopAnnoyingAnimations()
         removeOverlay()
         unregisterReceiver(screenTimeReceiver)
         unregisterReceiver(screenOnReceiver)
@@ -230,15 +241,130 @@ class OverlayService : Service() {
         }
     }
     
-    private fun showAnnoyingPopup() {
-        // Can't show AlertDialog from service directly, send broadcast to MainActivity
-        Log.d(TAG, "showAnnoyingPopup: sending broadcast to show popup")
-        val intent = Intent(ACTION_SHOW_POPUP)
-        sendBroadcast(intent)
+    private fun startAnnoyingAnimations() {
+        Log.d(TAG, "startAnnoyingAnimations: starting annoying overlay animations")
+        
+        // Create multiple emoji views that bounce around
+        val displayMetrics = resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels
+        val screenHeight = displayMetrics.heightPixels
+        
+        // Add 3-5 random emoji views
+        val numEmojis = Random.nextInt(3, 6)
+        for (i in 0 until numEmojis) {
+            val emojiView = TextView(this).apply {
+                text = annoyingEmojis.random()
+                textSize = Random.nextInt(40, 80).toFloat()
+                gravity = Gravity.CENTER
+            }
+            
+            val params = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                } else {
+                    @Suppress("DEPRECATION")
+                    WindowManager.LayoutParams.TYPE_PHONE
+                },
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                PixelFormat.TRANSLUCENT
+            ).apply {
+                gravity = Gravity.TOP or Gravity.START
+                x = Random.nextInt(0, screenWidth - 200)
+                y = Random.nextInt(100, screenHeight / 2)
+            }
+            
+            try {
+                windowManager.addView(emojiView, params)
+                annoyingViews.add(emojiView)
+                
+                // Start bouncing animation
+                startBouncingAnimation(emojiView, params, screenWidth, screenHeight)
+            } catch (e: Exception) {
+                Log.e(TAG, "startAnnoyingAnimations: failed to add emoji view", e)
+            }
+        }
+        
+        // Schedule periodic emoji flashing and repositioning
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                if (annoyingAnimationsActive && annoyingViews.isNotEmpty()) {
+                    // Randomly flash an emoji or reposition one
+                    val randomView = annoyingViews.random()
+                    if (Random.nextBoolean()) {
+                        flashEmoji(randomView)
+                    } else {
+                        repositionEmoji(randomView, screenWidth, screenHeight)
+                    }
+                    handler.postDelayed(this, Random.nextLong(2000, 5000))
+                }
+            }
+        }, 2000)
+    }
+    
+    private fun startBouncingAnimation(view: View, params: WindowManager.LayoutParams, screenWidth: Int, screenHeight: Int) {
+        // Create a bouncing animation
+        val animation = TranslateAnimation(
+            0f, Random.nextInt(-200, 200).toFloat(),
+            0f, Random.nextInt(-300, 300).toFloat()
+        ).apply {
+            duration = Random.nextLong(2000, 4000)
+            repeatCount = Animation.INFINITE
+            repeatMode = Animation.REVERSE
+        }
+        
+        view.startAnimation(animation)
+    }
+    
+    private fun flashEmoji(view: View) {
+        // Flash the emoji by changing its alpha
+        view.animate()
+            .alpha(0f)
+            .setDuration(200)
+            .withEndAction {
+                if (view in annoyingViews) {
+                    view.animate()
+                        .alpha(1f)
+                        .setDuration(200)
+                        .start()
+                }
+            }
+            .start()
+    }
+    
+    private fun repositionEmoji(view: View, screenWidth: Int, screenHeight: Int) {
+        // Reposition the emoji to a new random location
+        val params = view.layoutParams as? WindowManager.LayoutParams ?: return
+        params.x = Random.nextInt(0, screenWidth - 200)
+        params.y = Random.nextInt(100, screenHeight / 2)
+        
+        try {
+            windowManager.updateViewLayout(view, params)
+        } catch (e: Exception) {
+            Log.w(TAG, "repositionEmoji: failed to update view layout", e)
+        }
+    }
+    
+    private fun stopAnnoyingAnimations() {
+        Log.d(TAG, "stopAnnoyingAnimations: stopping annoying animations")
+        
+        // Remove all annoying emoji views
+        annoyingViews.forEach { view ->
+            try {
+                view.clearAnimation()
+                windowManager.removeView(view)
+            } catch (e: Exception) {
+                Log.w(TAG, "stopAnnoyingAnimations: failed to remove view", e)
+            }
+        }
+        annoyingViews.clear()
     }
     
     companion object {
         private const val TAG = "OverlayService"
-        const val ACTION_SHOW_POPUP = "com.simonbaars.decreasescreentime.SHOW_POPUP"
     }
 }

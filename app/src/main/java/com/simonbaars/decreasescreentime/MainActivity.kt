@@ -41,15 +41,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    
-    private val popupReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == OverlayService.ACTION_SHOW_POPUP) {
-                android.util.Log.d("MainActivity", "popupReceiver: received popup broadcast, showing dialog")
-                showAnnoyingPopup()
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,14 +80,6 @@ class MainActivity : AppCompatActivity() {
                     REQUEST_NOTIFICATION_PERMISSION
                 )
             }
-        }
-        
-        // Register popup receiver (needs to stay registered even when app is in background)
-        val popupFilter = IntentFilter(OverlayService.ACTION_SHOW_POPUP)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(popupReceiver, popupFilter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(popupReceiver, popupFilter)
         }
         
         // Start services
@@ -142,7 +125,6 @@ class MainActivity : AppCompatActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(popupReceiver)
     }
 
     private fun startScreenTimeService() {
@@ -226,17 +208,6 @@ class MainActivity : AppCompatActivity() {
         
         updateUnlockCount()
         updateScreenTimeFromPrefs()
-    }
-    
-    private fun showAnnoyingPopup() {
-        AlertDialog.Builder(this)
-            .setTitle("⚠️ EXCESSIVE SCREEN TIME ⚠️")
-            .setMessage("You've been using your phone for over an hour today! Consider taking a break for your health and wellbeing.")
-            .setCancelable(false)
-            .setPositiveButton("I'll take a break") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
     }
     
     private fun exportToCsv() {
