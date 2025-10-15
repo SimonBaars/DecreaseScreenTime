@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     private val popupReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == OverlayService.ACTION_SHOW_POPUP) {
+                android.util.Log.d("MainActivity", "popupReceiver: received popup broadcast, showing dialog")
                 showAnnoyingPopup()
             }
         }
@@ -90,6 +91,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
         
+        // Register popup receiver (needs to stay registered even when app is in background)
+        val popupFilter = IntentFilter(OverlayService.ACTION_SHOW_POPUP)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(popupReceiver, popupFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(popupReceiver, popupFilter)
+        }
+        
         // Start services
         startScreenTimeService()
         
@@ -121,13 +130,6 @@ class MainActivity : AppCompatActivity() {
             registerReceiver(screenTimeReceiver, screenTimeFilter)
         }
         
-        val popupFilter = IntentFilter(OverlayService.ACTION_SHOW_POPUP)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(popupReceiver, popupFilter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(popupReceiver, popupFilter)
-        }
-        
         updateUnlockCount()
         updateScreenTimeFromPrefs()
     }
@@ -136,6 +138,10 @@ class MainActivity : AppCompatActivity() {
         super.onPause()
         unregisterReceiver(screenUnlockReceiver)
         unregisterReceiver(screenTimeReceiver)
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
         unregisterReceiver(popupReceiver)
     }
 

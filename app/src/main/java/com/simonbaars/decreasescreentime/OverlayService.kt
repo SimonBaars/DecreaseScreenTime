@@ -232,6 +232,7 @@ class OverlayService : Service() {
     
     private fun showAnnoyingPopup() {
         // Can't show AlertDialog from service directly, send broadcast to MainActivity
+        Log.d(TAG, "showAnnoyingPopup: sending broadcast to show popup")
         val intent = Intent(ACTION_SHOW_POPUP)
         sendBroadcast(intent)
     }
